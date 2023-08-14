@@ -1,5 +1,5 @@
 import singer
-import orjson
+import msgspec
 import unittest
 import dateutil
 
@@ -164,12 +164,12 @@ class TestParsingNumbers(unittest.TestCase):
 
     def test_parse_absurdly_large_decimal(self):
         value_str = '9' * 1024 + '.' + '9' * 1024
-        with self.assertRaises(orjson.JSONDecodeError):
+        with self.assertRaises(msgspec.JSONDecodeError):
             self.create_record(value_str)
 
     def test_parse_absurdly_large_int(self):
         value_str = '9' * 1024
-        with self.assertRaises(orjson.JSONDecodeError):
+        with self.assertRaises(msgspec.JSONDecodeError):
             self.create_record(value_str)
 
     def test_parse_bulk_decs(self):
@@ -204,7 +204,7 @@ class TestParsingNumbers(unittest.TestCase):
                          singer.format_message(record_message, option=0))
 
         self.assertEqual(b'{"type":"RECORD","stream":"users","record":{"name":"foo"}}\n',
-                         singer.format_message(record_message, option=orjson.OPT_APPEND_NEWLINE))
+                         singer.format_message(record_message, option=1))
 
 
 if __name__ == '__main__':

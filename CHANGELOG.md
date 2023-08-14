@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.0 (2023-08-23)
+ * Using msgspec instead of orjson or other serializers for speed benefit
+
 ## 2.0.2 (2022-03-23)
  * Using orjson instead of simplejson or other serializers for speed benefit
  * Fix: Output decimal.Decimal as int or float not str

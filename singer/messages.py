@@ -1,13 +1,16 @@
 import sys
 
 import pytz
-import orjson
+import msgspec
 import decimal
 import ciso8601
 
 import singer.utils as u
 from .logger import get_logger
 LOGGER = get_logger()
+
+# Message buffer for msgspec
+msg_buffer = bytearray(64)
 
 class Message():
     '''Base class for messages.'''
@@ -240,7 +243,7 @@ def parse_message(msg):
     # lossy conversions.  However, this will affect
     # very few data points and we have chosen to
     # leave conversion as is for now.
-    obj = orjson.loads(msg)
+    obj = msgspec.json.decode(msg)
     msg_type = _required_key(obj, 'type')
 
     if msg_type == 'RECORD':
@@ -292,16 +295,28 @@ def parse_message(msg):
 
     return None
 
-def format_message(message, option=0):
-    def default(obj):
-        if isinstance(obj, decimal.Decimal):
-            return int(obj) if float(obj).is_integer() else float(obj)
-        raise TypeError
-    
-    return orjson.dumps(message.asdict(), option=option, default=default)
+def format_message(message: Message, option=0) -> bytes:
+    """Format a message as a JSON string.
+
+    Args:
+        message: The message to format.
+        option: 0 = json message
+                1 = json message with newline
+
+    Returns:
+        The formatted message.
+    """
+    if option==0:
+        return msgspec.encode(message.to_dict())
+    elif option==1:
+        msgspec.encode_into(message.to_dict(), msg_buffer)
+        msg_buffer.extend(b"\n")
+        return msg_buffer
+    else:
+        raise Exception('Not implemented: 0=Standard, 1=Message with newline')
 
 def write_message(message):
-    sys.stdout.buffer.write(format_message(message, option=orjson.OPT_APPEND_NEWLINE))
+    sys.stdout.buffer.write(format_message(message, option=1))
     sys.stdout.buffer.flush()
 
 

@@ -1,5 +1,5 @@
 '''Provides an object model for a Singer Catalog.'''
-import orjson
+import msgspec
 import sys
 
 from . import metadata as metadata_module
@@ -15,7 +15,7 @@ def write_catalog(catalog):
     if not catalog.streams:
         LOGGER.warning('Catalog being written with no streams.')
 
-    catalog_json = orjson.dumps(catalog.to_dict(), option=orjson.OPT_INDENT_2)
+    catalog_json = msgspec.json.format(msgspec.json.encode(catalog.to_dict()))
     sys.stdout.buffer.write(catalog_json)
     sys.stdout.buffer.flush()
 

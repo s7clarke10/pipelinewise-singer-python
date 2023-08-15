@@ -29,7 +29,7 @@ setup(name="pipelinewise-singer-python",
           'dev': [
               'pylint==2.11.1',
               'pytest==7.1.2',
-              'coverage[toml]~=6.3',
+              'coverage[toml]>=6.3,<8.0',
               'ipython',
               'ipdb',
               'unify==0.5'

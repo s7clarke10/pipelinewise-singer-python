@@ -48,6 +48,22 @@ singer.write_state({'my_table': 'd'})
 library to define it. However, if the environment variable `LOGGING_CONF_FILE` is found and set then the **pipelinewise-singer-python** 
 would use the path provided in the env variable as the logging configuration for the logger. 
 
+### Singer Decimal
+
+Enabling the use_singer_decimal = True in a tap will output **decimal** and **floats** as a string
+rather than their numeric representation.
+
+**Optional Setting**:
+
+A boolean setting: when enabled `true` in the config will outputs decimal and floating point numbers as strings to avoid loss of precision and scale.
+For supporting taps, there are hints in the schema message, format = "singer.decimal", and additionalProperties scale_precision dictionary providing precision and scale. For decimal data, the target can use this 
+information to correctly replicate decimal data without loss. For the Floats and Number data type without precision and scale it is recommended that post processing formats the datatype based on an inspection of the data because the true data size is unknown / dynamic.
+
+```json
+{
+  "use_singer_decimal": true,
+}
+```
 
 License
 -------

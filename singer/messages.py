@@ -9,8 +9,8 @@ import singer.utils as u
 from .logger import get_logger
 LOGGER = get_logger()
 
-# Set JSON Serializer
-encoder = msgspec.json.Encoder()
+# A Global variable to hold the msgspec encoder.
+ENCODER = None
 
 # Message buffer for msgspec
 msg_buffer = bytearray(64)
@@ -300,6 +300,8 @@ def parse_message(msg):
 
 def format_message(message, option=0):
     """Format a message as a JSON string.
+    The msgspec encoder is cached so it is
+    not created for every message.
 
     Args:
         message: The message to format.
@@ -310,16 +312,55 @@ def format_message(message, option=0):
         The formatted message.
     """
 
+    if not ENCODER:
+        set_msgspec_encoder()
+
     if option==0:
-        return encoder.encode(message.asdict())
+        return ENCODER.encode(message.asdict())
     elif option==1:
-        encoder.encode_into(message.asdict(), msg_buffer)
+        ENCODER.encode_into(message.asdict(), msg_buffer)
         msg_buffer.extend(b"\n")
         return msg_buffer
     else:
         raise Exception('Not implemented: 0=Standard, 1=Message with newline')
+      
+def set_msgspec_encoder():
+    """Sets a JSON serializer encoder for all encoding.
+    Checks whether the use_singer_decimal setting has 
+    been enabled to output decimals in a numeric format.
+
+    Default: Output decimals, floats in numeric format. 
+    If use_singer_decimal = true output as strings.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+    """
+
+    global ENCODER
+    use_singer_decimal = u.get_singer_decimal_setting()
+
+    if use_singer_decimal:
+        ENCODER = msgspec.json.Encoder()
+        LOGGER.info(
+            'Singer Decimal Enabled! Floats and Decimals will be output as strings'
+        )
+    else:
+        ENCODER = msgspec.json.Encoder(decimal_format="number")
 
 def write_message(message):
+    """Writes the message to stdout. Before writing the
+    message it is formatted using the msgspec encoder. This
+    method outputs each message followed by newline.
+
+    Args:
+        message: The message to be serialized.
+
+    Returns:
+        None.
+    """  
     sys.stdout.buffer.write(format_message(message, option=1))
     sys.stdout.buffer.flush()
 

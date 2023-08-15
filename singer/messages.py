@@ -9,6 +9,9 @@ import singer.utils as u
 from .logger import get_logger
 LOGGER = get_logger()
 
+# Set JSON Serializer
+encoder = msgspec.json.Encoder()
+
 # Message buffer for msgspec
 msg_buffer = bytearray(64)
 
@@ -295,7 +298,7 @@ def parse_message(msg):
 
     return None
 
-def format_message(message: Message, option=0) -> bytes:
+def format_message(message, option=0):
     """Format a message as a JSON string.
 
     Args:
@@ -306,10 +309,11 @@ def format_message(message: Message, option=0) -> bytes:
     Returns:
         The formatted message.
     """
+
     if option==0:
-        return msgspec.encode(message.to_dict())
+        return encoder.encode(message.asdict())
     elif option==1:
-        msgspec.encode_into(message.to_dict(), msg_buffer)
+        encoder.encode_into(message.asdict(), msg_buffer)
         msg_buffer.extend(b"\n")
         return msg_buffer
     else:

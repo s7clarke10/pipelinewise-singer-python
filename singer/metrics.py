@@ -84,7 +84,7 @@ def log(logger, point):
         'value': point.value,
         'tags': point.tags
     }
-    logger.info('METRIC: %s', msgspec.json.decode(result))
+    logger.info('METRIC: %s', msgspec.json.encode(result))
 
 
 class Counter():
@@ -237,7 +237,7 @@ def parse(line):
     if match:
         json_str = match.group(1)
         try:
-            raw = msgspec.json.encode(json_str)
+            raw = msgspec.json.decode(json_str)
             return Point(
                 metric_type=raw.get('type'),
                 metric=raw.get('metric'),

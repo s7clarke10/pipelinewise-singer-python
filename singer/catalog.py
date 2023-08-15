@@ -95,7 +95,7 @@ class Catalog():
     @classmethod
     def load(cls, filename):
         with open(filename, encoding='utf-8') as fp:  # pylint: disable=invalid-name
-            return Catalog.from_dict(orjson.loads(fp.read()))
+            return Catalog.from_dict(msgspec.json.decode(fp.read()))
 
     @classmethod
     def from_dict(cls, data):

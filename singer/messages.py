@@ -12,8 +12,10 @@ LOGGER = get_logger()
 # A Global variable to hold the msgspec encoder.
 ENCODER = None
 
-# Message buffer for msgspec
-msg_buffer = bytearray(64)
+# Allocate a single shared buffer Message buffer for msgspec
+# This buffer will dynamically expand as required but will not shrink.
+# https://jcristharif.com/msgspec/perf-tips.html
+msg_buffer = bytearray()
 
 class Message():
     '''Base class for messages.'''

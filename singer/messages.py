@@ -299,6 +299,7 @@ def parse_message(msg):
 
     return None
 
+
 def format_message(message, option=0):
     """Format a message as a JSON string.
     The msgspec encoder is cached so it is
@@ -318,13 +319,13 @@ def format_message(message, option=0):
 
     if option==0:
         return ENCODER.encode(message.asdict())
-    elif option==1:
+    if option==1:
         ENCODER.encode_into(message.asdict(), msg_buffer)
         msg_buffer.extend(b"\n")
         return msg_buffer
-    else:
-        raise Exception('Not implemented: 0=Standard, 1=Message with newline')
-        return None
+
+    raise Exception('Not implemented: 0=Standard, 1=Message with newline')
+
 
 def set_msgspec_encoder():
     """Sets a JSON serializer encoder for all encoding.
@@ -351,6 +352,7 @@ def set_msgspec_encoder():
         )
     else:
         ENCODER = msgspec.json.Encoder(decimal_format="number")
+
 
 def write_message(message):
     """Writes the message to stdout. Before writing the

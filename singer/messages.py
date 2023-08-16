@@ -2,7 +2,6 @@ import sys
 
 import pytz
 import msgspec
-import decimal
 import ciso8601
 
 import singer.utils as u
@@ -325,13 +324,14 @@ def format_message(message, option=0):
         return msg_buffer
     else:
         raise Exception('Not implemented: 0=Standard, 1=Message with newline')
-      
+        return None
+
 def set_msgspec_encoder():
     """Sets a JSON serializer encoder for all encoding.
-    Checks whether the use_singer_decimal setting has 
+    Checks whether the use_singer_decimal setting has
     been enabled to output decimals in a numeric format.
 
-    Default: Output decimals, floats in numeric format. 
+    Default: Output decimals, floats in numeric format.
     If use_singer_decimal = true output as strings.
 
     Args:
@@ -341,7 +341,7 @@ def set_msgspec_encoder():
         None.
     """
 
-    global ENCODER
+    global ENCODER  # pylint: disable=W0603
     use_singer_decimal = u.get_singer_decimal_setting()
 
     if use_singer_decimal:
@@ -362,7 +362,7 @@ def write_message(message):
 
     Returns:
         None.
-    """  
+    """
     sys.stdout.buffer.write(format_message(message, option=1))
     sys.stdout.buffer.flush()
 

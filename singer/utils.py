@@ -181,7 +181,7 @@ def parse_args(required_config_keys):
         args.catalog = Catalog.load(args.catalog)
 
     check_config(args.config, required_config_keys)
-    
+
     # Store the use_singer_decimal setting if available
     use_singer_decimal = args.config.get('use_singer_decimal',False)
     set_singer_decimal_setting(use_singer_decimal)
@@ -307,33 +307,32 @@ def should_sync_field(inclusion, selected, default=False):
 
     # if there was no selected value, use the default
     return default
-  
+
 
 def get_singer_decimal_setting():
     """
     Returns True if use_singer_decimal config is enabled.
-    
+
     When the config use_singer_decimal is False or not set, the output
     of decimal and floats will be number format rather than a
     string.
-    
+
     Default: False
     """
-    
+
     return USE_SINGER_DECIMAL
-  
+
 def set_singer_decimal_setting(config_singer_decimal=False):
     """
     Updates the Singer Decimal default of True if config is enabled.
-    
+
     When the config use_singer_decimal is False or not set, the output
     of decimal and floats will be number format rather than a
     string.
-    
+
     Default: False
     """
 
-    global USE_SINGER_DECIMAL
-    
-    USE_SINGER_DECIMAL = config_singer_decimal
+    global USE_SINGER_DECIMAL # pylint: disable=W0603
 
+    USE_SINGER_DECIMAL = config_singer_decimal

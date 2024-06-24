@@ -72,11 +72,11 @@ jobs:
 
     - name: Generate XML coverage report
       run: |
-        coverage xml
+        coverage xml --fail-under=75
 
     - name: Display human readable report
       run: |
-        coverage report
+        coverage report --fail-under=75
 
     # Optional if you want to use codecov.io
     # - name: Upload coverage report

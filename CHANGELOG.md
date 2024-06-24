@@ -2,6 +2,8 @@
 
 ## 3.0.0 (2023-08-23)
  * Using msgspec instead of orjson or other serializers for speed benefit
+ * Support for Python 3.12
+ * Deprecating Python 3.7
 
 ## 2.0.2 (2022-03-23)
  * Using orjson instead of simplejson or other serializers for speed benefit

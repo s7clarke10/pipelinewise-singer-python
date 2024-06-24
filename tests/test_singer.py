@@ -164,12 +164,12 @@ class TestParsingNumbers(unittest.TestCase):
 
     def test_parse_absurdly_large_decimal(self):
         value_str = '9' * 1024 + '.' + '9' * 1024
-        with self.assertRaises(msgspec.JSONDecodeError):
+        with self.assertRaises(msgspec.ValidationError):
             self.create_record(value_str)
 
     def test_parse_absurdly_large_int(self):
         value_str = '9' * 1024
-        with self.assertRaises(msgspec.JSONDecodeError):
+        with self.assertRaises(msgspec.ValidationError):
             self.create_record(value_str)
 
     def test_parse_bulk_decs(self):

@@ -169,8 +169,9 @@ class TestParsingNumbers(unittest.TestCase):
 
     def test_parse_absurdly_large_int(self):
         value_str = '9' * 1024
-        with self.assertRaises(msgspec.ValidationError):
-            self.create_record(value_str)
+        value = self.create_record(value_str)
+        self.assertEqual(int(value_str), value)
+        self.assertEqual(int, type(value))
 
     def test_parse_bulk_decs(self):
         value_strs = [

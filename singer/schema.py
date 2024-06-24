@@ -5,6 +5,7 @@ import msgspec
 
 # These are standard keys defined in the JSON Schema spec
 STANDARD_KEYS = [
+    'title',
     'selected',
     'inclusion',
     'description',
@@ -17,9 +18,16 @@ STANDARD_KEYS = [
     'minLength',
     'format',
     'type',
+    'default',
+    'required',
+    'enum',
+    'pattern',
+    'contentMediaType',
+    'contentEncoding',
     'additionalProperties',
     'anyOf',
     'patternProperties',
+    'allOf',
 ]
 
 
@@ -32,13 +40,15 @@ class Schema():  # pylint: disable=too-many-instance-attributes
     '''
 
     # pylint: disable=too-many-locals
-    def __init__(self, type=None, format=None, properties=None, items=None,
+    def __init__(self, type=None, default=None, format=None, properties=None, items=None,
                  selected=None, inclusion=None, description=None, minimum=None,
                  maximum=None, exclusiveMinimum=None, exclusiveMaximum=None,
                  multipleOf=None, maxLength=None, minLength=None, additionalProperties=None,
-                 anyOf=None, patternProperties=None):
+                 anyOf=None, allOf=None, patternProperties=None, required=None, enum=None,
+                 title=None, pattern=None, contentMediaType=None, contentEncoding=None):
 
         self.type = type
+        self.default = default
         self.properties = properties
         self.items = items
         self.selected = selected
@@ -52,9 +62,16 @@ class Schema():  # pylint: disable=too-many-instance-attributes
         self.maxLength = maxLength
         self.minLength = minLength
         self.anyOf = anyOf
+        self.anyOf = allOf
         self.format = format
         self.additionalProperties = additionalProperties
         self.patternProperties = patternProperties
+        self.required = required
+        self.enum = enum
+        self.title = title
+        self.pattern = pattern
+        self.contentMediaType = contentMediaType
+        self.contentEncoding = contentEncoding
 
     def __str__(self):
         return msgspec.json.encode(self.to_dict()).decode('utf-8')

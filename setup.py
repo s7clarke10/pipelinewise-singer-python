@@ -19,7 +19,7 @@ setup(name="pipelinewise-singer-python",
       url="https://github.com/transferwise/pipelinewise-singer-python",
       install_requires=[
           'pytz>=2018.4',
-          'jsonschema>=3.2.0,==3.*',
+          'jsonschema>=4.19.2,==4.*',
           'msgspec>=0.18.0',
           'python-dateutil>2.7.3,==2.*',
           'backoff>=2.2.1,==2.*',

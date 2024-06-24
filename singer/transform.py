@@ -1,7 +1,9 @@
 import datetime
 import logging
 import re
-from jsonschema import RefResolver
+#from jsonschema import RefResolver
+from referencing import Registry
+from referencing.jsonschema import DRAFT202012
 
 import singer.metadata
 from singer.logger import get_logger
@@ -53,6 +55,7 @@ class SchemaKey:
     properties = 'properties'
     pattern_properties = 'patternProperties'
     any_of = 'anyOf'
+    all_of = 'allOf'
 
 class Error:
     def __init__(self, path, data, schema=None, logging_level=logging.INFO):
@@ -351,14 +354,24 @@ def resolve_schema_references(schema, refs=None):
     Returns:
         schema
     '''
+#    refs = refs or {}
+#    return _resolve_schema_references(schema, RefResolver('', schema, store=refs))
     refs = refs or {}
-    return _resolve_schema_references(schema, RefResolver('', schema, store=refs))
+    registry: Registry = Registry()
+    schema_resource = DRAFT202012.create_resource(schema)
+    registry = registry.with_resource("", schema_resource)
+    registry = registry.with_resources(
+        [(k, DRAFT202012.create_resource(v)) for k, v in refs.items()]
+    )
+
+    resolver = registry.resolver()
+    return _resolve_schema_references(schema, resolver)
 
 def _resolve_schema_references(schema, resolver):
     if SchemaKey.ref in schema:
         reference_path = schema.pop(SchemaKey.ref, None)
-        resolved = resolver.resolve(reference_path)[1]
-        schema.update(resolved)
+        resolved = resolver.lookup(reference_path)
+        schema.update(resolved.contents)
         return _resolve_schema_references(schema, resolver)
 
     if SchemaKey.properties in schema:
@@ -375,5 +388,9 @@ def _resolve_schema_references(schema, resolver):
     if SchemaKey.any_of in schema:
         for i, element in enumerate(schema[SchemaKey.any_of]):
             schema[SchemaKey.any_of][i] = _resolve_schema_references(element, resolver)
+            
+    if SchemaKey.all_of in schema:
+        for i, element in enumerate(schema[_SchemaKey.all_of]):
+            schema[SchemaKey.all_of][i] = _resolve_schema_references(element, resolver)
 
     return schema

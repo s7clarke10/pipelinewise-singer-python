@@ -388,9 +388,9 @@ def _resolve_schema_references(schema, resolver):
     if SchemaKey.any_of in schema:
         for i, element in enumerate(schema[SchemaKey.any_of]):
             schema[SchemaKey.any_of][i] = _resolve_schema_references(element, resolver)
-            
+
     if SchemaKey.all_of in schema:
-        for i, element in enumerate(schema[_SchemaKey.all_of]):
+        for i, element in enumerate(schema[SchemaKey.all_of]):
             schema[SchemaKey.all_of][i] = _resolve_schema_references(element, resolver)
 
     return schema

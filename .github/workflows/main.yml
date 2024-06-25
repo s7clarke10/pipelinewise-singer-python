@@ -46,6 +46,10 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     needs: build
     steps:
     - name: Check out the repository

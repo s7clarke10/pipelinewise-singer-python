@@ -83,9 +83,9 @@ jobs:
       run: |
         coverage report --fail-under=75
         
-    - name: Create a Markdown for MR Comment
-      run: |
-        coverage report --fail-under=75 --format=markdown > code-coverage-results.md
+#    - name: Create a Markdown for MR Comment
+#      run: |
+#        coverage report --fail-under=75 --format=markdown > code-coverage-results.md
         
     - name: Code Coverage Summary Report
       uses: irongut/CodeCoverageSummary@v1.2.0
@@ -106,6 +106,9 @@ jobs:
       with:
         recreate: true
         path: code-coverage-results.md
+
+    - name: Write to Job Summary
+      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
 
     # Optional if you want to use codecov.io
     # - name: Upload coverage report

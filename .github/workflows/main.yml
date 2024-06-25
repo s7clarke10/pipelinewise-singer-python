@@ -64,7 +64,7 @@ jobs:
     - name: Download coverage data
       uses: actions/download-artifact@v4
       with:
-        name: coverage-data.*
+        name: coverage-data*
 
     - name: Combine coverage data
       run: |

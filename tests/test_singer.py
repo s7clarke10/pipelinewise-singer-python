@@ -2,6 +2,7 @@ import singer
 import msgspec
 import unittest
 import dateutil
+import decimal
 
 
 class TestSinger(unittest.TestCase):
@@ -152,20 +153,20 @@ class TestParsingNumbers(unittest.TestCase):
 
     def test_parse_regular_decimal(self):
         value = self.create_record('3.14')
-        self.assertEqual(3.14, value)
+        self.assertEqual(decimal.Decimal('3.14'), value)
 
     def test_parse_large_decimal(self):
         value = self.create_record('9999999999999999.9999')
-        self.assertEqual(9999999999999999.9999, value)
+        self.assertEqual(decimal.Decimal('9999999999999999.9999'), value)
 
     def test_parse_small_decimal(self):
         value = self.create_record('-9999999999999999.9999')
-        self.assertEqual(-9999999999999999.9999, value)
+        self.assertEqual(decimal.Decimal('-9999999999999999.9999'), value)
 
     def test_parse_absurdly_large_decimal(self):
         value_str = '9' * 1024 + '.' + '9' * 1024
-        with self.assertRaises(msgspec.ValidationError):
-            self.create_record(value_str)
+        value = self.create_record(value_str)
+        self.assertEqual(decimal.Decimal(value_str), value)
 
     def test_parse_absurdly_large_int(self):
         value_str = '9' * 1024
@@ -191,7 +192,7 @@ class TestParsingNumbers(unittest.TestCase):
         ]
         for value_str in value_strs:
             value = self.create_record(value_str)
-            self.assertEqual(float(value_str), value)
+            self.assertEqual(decimal.Decimal(value_str), value)
 
     def test_format_message(self):
         record_message = singer.RecordMessage(

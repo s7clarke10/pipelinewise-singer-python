@@ -14,13 +14,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     runs-on: ubuntu-latest
 
     steps:
       - name: Checking out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -39,17 +39,21 @@ jobs:
         run: coverage run --parallel -m pytest
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: coverage-data
+          name: coverage-data-${{ matrix.python-version }}
           path: ".coverage.*"
 
   coverage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     needs: build
     steps:
     - name: Check out the repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -62,9 +66,10 @@ jobs:
         python3 -m pip install -U .[dev]
 
     - name: Download coverage data
-      uses: actions/download-artifact@v3.0.0
+      uses: actions/download-artifact@v4
       with:
-        name: coverage-data
+        pattern: coverage-data-*
+        merge-multiple: true
 
     - name: Combine coverage data
       run: |
@@ -72,12 +77,35 @@ jobs:
 
     - name: Generate XML coverage report
       run: |
-        coverage xml
+        coverage xml --fail-under=75
 
     - name: Display human readable report
       run: |
-        coverage report
+        coverage report --fail-under=75
+        
+    - name: Code Coverage Summary Report
+      uses: irongut/CodeCoverageSummary@v1.2.0
+      with:
+        filename: coverage.xml
+        badge: true
+        fail_below_min: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: true
+        indicators: true
+        output: both
+        thresholds: '60 80'
+
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md
+
+    - name: Write to Job Summary
+      run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
 
     # Optional if you want to use codecov.io
     # - name: Upload coverage report
-    #   uses: codecov/codecov-action@v3
+    #   uses: codecov/codecov-action@v4

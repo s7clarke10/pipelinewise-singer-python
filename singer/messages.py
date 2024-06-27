@@ -3,6 +3,7 @@ import sys
 import pytz
 import msgspec
 import ciso8601
+import decimal
 
 import singer.utils as u
 from .logger import get_logger
@@ -247,7 +248,8 @@ def parse_message(msg):
     # lossy conversions.  However, this will affect
     # very few data points and we have chosen to
     # leave conversion as is for now.
-    obj = msgspec.json.decode(msg)
+    dec = msgspec.json.Decoder(float_hook=decimal.Decimal)
+    obj = dec.decode(msg)
     msg_type = _required_key(obj, 'type')
 
     if msg_type == 'RECORD':

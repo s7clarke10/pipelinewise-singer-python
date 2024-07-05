@@ -1,24 +1,28 @@
+from __future__ import annotations
+
 import argparse
 import collections
 import datetime
 import functools
-import msgspec
 import time
 from warnings import warn
 
-import dateutil.parser
-import pytz
 import backoff as backoff_module
+import dateutil.parser
+import msgspec
+import pytz
 
 from singer.catalog import Catalog
 
-DATETIME_PARSE = '%Y-%m-%dT%H:%M:%SZ'
-DATETIME_FMT = '%04Y-%m-%dT%H:%M:%S.%fZ'
-DATETIME_FMT_SAFE = '%Y-%m-%dT%H:%M:%S.%fZ'
+DATETIME_PARSE = "%Y-%m-%dT%H:%M:%SZ"
+DATETIME_FMT = "%04Y-%m-%dT%H:%M:%S.%fZ"
+DATETIME_FMT_SAFE = "%Y-%m-%dT%H:%M:%S.%fZ"
 USE_SINGER_DECIMAL = False
+
 
 def now():
     return datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+
 
 def strptime_with_tz(dtime):
     d_object = dateutil.parser.parse(dtime)
@@ -26,6 +30,7 @@ def strptime_with_tz(dtime):
         return d_object.replace(tzinfo=pytz.UTC)
 
     return d_object
+
 
 def strptime(dtime):
     """DEPRECATED Use strptime_to_utc instead.
@@ -52,11 +57,12 @@ def strptime(dtime):
     Traceback (most recent call last):
       ...
     ValueError: time data '2018-01-01T00:00:00.000000Z' does not match format '%Y-%m-%dT%H:%M:%SZ'
-    """
+    """  # noqa: E501
 
-    warn('Use strptime_to_utc instead', DeprecationWarning, stacklevel=2)
+    warn("Use strptime_to_utc instead", DeprecationWarning, stacklevel=2)
 
     return datetime.datetime.strptime(dtime, DATETIME_PARSE)
+
 
 def strptime_to_utc(dtimestr):
     d_object = dateutil.parser.parse(dtimestr)
@@ -65,19 +71,21 @@ def strptime_to_utc(dtimestr):
 
     return d_object.astimezone(tz=pytz.UTC)
 
+
 def strftime(dtime, format_str=DATETIME_FMT):
     if dtime.utcoffset() != datetime.timedelta(0):
-        raise Exception('datetime must be pegged at UTC tzoneinfo')
+        raise Exception("datetime must be pegged at UTC tzoneinfo")
 
     dt_str = None
     try:
         dt_str = dtime.strftime(format_str)
-        if dt_str.startswith('4Y'):
+        if dt_str.startswith("4Y"):
             dt_str = dtime.strftime(DATETIME_FMT_SAFE)
     except ValueError:
         dt_str = dtime.strftime(DATETIME_FMT_SAFE)
 
     return dt_str
+
 
 def ratelimit(limit, every):
     def limitdecorator(func):
@@ -102,11 +110,11 @@ def ratelimit(limit, every):
 
 def chunk(array, num):
     for i in range(0, len(array), num):
-        yield array[i:i + num]
+        yield array[i : i + num]  # noqa: E203
 
 
 def load_json(path):
-    with open(path, encoding='utf-8') as fil:
+    with open(path, encoding="utf-8") as fil:
         return msgspec.json.decode(fil.read())
 
 
@@ -125,7 +133,7 @@ def update_state(state, entity, dtime):
 
 
 def parse_args(required_config_keys):
-    '''Parse standard command-line args.
+    """Parse standard command-line args.
 
     Parses the command-line arguments mentioned in the SPEC and the
     BEST_PRACTICES documents:
@@ -139,51 +147,45 @@ def parse_args(required_config_keys):
     Returns the parsed args object from argparse. For each argument that
     point to JSON files (config, state, properties), we will automatically
     load and parse the JSON file.
-    '''
+    """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        '-c', '--config',
-        help='Config file',
-        required=True)
+    parser.add_argument("-c", "--config", help="Config file", required=True)
+
+    parser.add_argument("-s", "--state", help="State file")
 
     parser.add_argument(
-        '-s', '--state',
-        help='State file')
+        "-p",
+        "--properties",
+        help="Property selections: DEPRECATED, Please use --catalog instead",
+    )
+
+    parser.add_argument("--catalog", help="Catalog file")
 
     parser.add_argument(
-        '-p', '--properties',
-        help='Property selections: DEPRECATED, Please use --catalog instead')
-
-    parser.add_argument(
-        '--catalog',
-        help='Catalog file')
-
-    parser.add_argument(
-        '-d', '--discover',
-        action='store_true',
-        help='Do schema discovery')
+        "-d", "--discover", action="store_true", help="Do schema discovery"
+    )
 
     args = parser.parse_args()
     if args.config:
-        setattr(args, 'config_path', args.config)
+        setattr(args, "config_path", args.config)
         args.config = load_json(args.config)
     if args.state:
-        setattr(args, 'state_path', args.state)
+        setattr(args, "state_path", args.state)
         args.state = load_json(args.state)
     else:
         args.state = {}
     if args.properties:
-        setattr(args, 'properties_path', args.properties)
+        setattr(args, "properties_path", args.properties)
         args.properties = load_json(args.properties)
     if args.catalog:
-        setattr(args, 'catalog_path', args.catalog)
+        setattr(args, "catalog_path", args.catalog)
         args.catalog = Catalog.load(args.catalog)
 
     check_config(args.config, required_config_keys)
 
     # Store the use_singer_decimal setting if available
-    use_singer_decimal = args.config.get('use_singer_decimal',False)
+    use_singer_decimal = args.config.get("use_singer_decimal", False)
     set_singer_decimal_setting(use_singer_decimal)
 
     return args
@@ -192,7 +194,7 @@ def parse_args(required_config_keys):
 def check_config(config, required_keys):
     missing_keys = [key for key in required_keys if key not in config]
     if missing_keys:
-        raise Exception(f'Config is missing required keys: {missing_keys}')
+        raise Exception(f"Config is missing required keys: {missing_keys}")
 
 
 def backoff(exceptions, giveup):
@@ -203,22 +205,19 @@ def backoff(exceptions, giveup):
     giveup is a function that accepts the exception and returns True to retry
     """
     return backoff_module.on_exception(
-        backoff_module.expo,
-        exceptions,
-        max_tries=5,
-        giveup=giveup,
-        factor=2)
+        backoff_module.expo, exceptions, max_tries=5, giveup=giveup, factor=2
+    )
 
 
 def exception_is_4xx(exception):
     """Returns True if exception is in the 4xx range."""
-    if not hasattr(exception, 'response'):
+    if not hasattr(exception, "response"):
         return False
 
     if exception.response is None:
         return False
 
-    if not hasattr(exception.response, 'status_code'):
+    if not hasattr(exception.response, "status_code"):
         return False
 
     return 400 <= exception.response.status_code < 500
@@ -227,6 +226,7 @@ def exception_is_4xx(exception):
 def handle_top_exception(logger):
     """A decorator that will catch exceptions and log the exception's message
     as a CRITICAL log."""
+
     def decorator(fnc):
         @functools.wraps(fnc)
         def wrapped(*args, **kwargs):
@@ -235,7 +235,9 @@ def handle_top_exception(logger):
             except Exception as exc:
                 logger.critical(exc)
                 raise
+
         return wrapped
+
     return decorator
 
 
@@ -293,11 +295,11 @@ def should_sync_field(inclusion, selected, default=False):
     True
     """
     # always select automatic fields
-    if inclusion == 'automatic':
+    if inclusion == "automatic":
         return True
 
     # never select unsupported fields
-    if inclusion == 'unsupported':
+    if inclusion == "unsupported":
         return False
 
     # at this point inclusion == "available"
@@ -322,6 +324,7 @@ def get_singer_decimal_setting():
 
     return USE_SINGER_DECIMAL
 
+
 def set_singer_decimal_setting(config_singer_decimal=False):
     """
     Updates the Singer Decimal default of True if config is enabled.
@@ -333,6 +336,6 @@ def set_singer_decimal_setting(config_singer_decimal=False):
     Default: False
     """
 
-    global USE_SINGER_DECIMAL # pylint: disable=W0603
+    global USE_SINGER_DECIMAL  # pylint: disable=W0603
 
     USE_SINGER_DECIMAL = config_singer_decimal

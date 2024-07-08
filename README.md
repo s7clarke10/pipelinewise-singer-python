@@ -25,7 +25,7 @@ Next, install this library:
 source ~/.virtualenvs/singer-python/bin/activate
 git clone http://github.com/singer-io/singer-python
 cd singer-python
-make install
+pip install
 ```
 
 ### Usage example
@@ -64,6 +64,40 @@ information to correctly replicate decimal data without loss. For the Floats and
   "use_singer_decimal": true,
 }
 ```
+
+## Developer Resources
+
+### Initialize your Development Environment
+
+```bash
+pip install poetry
+poetry install
+```
+
+### Create and Run Tests
+
+Create tests within the `tests/` directory and
+then run:
+
+```bash
+poetry run pytest
+```
+
+or 
+
+```bash
+poetry run coverage run --parallel -m pytest
+```
+
+### Continuous Integration
+Run through the full suite of tests and linters by running
+
+```bash
+poetry run tox
+```
+
+These must pass in order for PR's to be merged.
+
 
 License
 -------

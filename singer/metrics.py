@@ -1,4 +1,4 @@
-'''Utilities for logging and parsing metrics.
+"""Utilities for logging and parsing metrics.
 
 A Tap should use this library to log structured messages about the read
 operations it makes.
@@ -38,57 +38,61 @@ commonly used metrics.
   * job_timer - Emits a 'job_duration' metric to track time of
     asynchronous jobs. Provides "job_type" tag.
 
-'''
+"""
 
-import msgspec
+from __future__ import annotations
+
 import re
 import time
 from collections import namedtuple
+
+import msgspec
+
 from singer.logger import get_logger
 
 DEFAULT_LOG_INTERVAL = 60
 
 
 class Status:
-    '''Constants for status codes'''
-    succeeded = 'succeeded'
-    failed = 'failed'
+    """Constants for status codes"""
+
+    succeeded = "succeeded"
+    failed = "failed"
 
 
 class Metric:
-    '''Constants for metric names'''
+    """Constants for metric names"""
 
-    record_count = 'record_count'
-    job_duration = 'job_duration'
-    http_request_duration = 'http_request_duration'
+    record_count = "record_count"
+    job_duration = "job_duration"
+    http_request_duration = "http_request_duration"
 
 
 class Tag:
-    '''Constants for commonly used tags'''
+    """Constants for commonly used tags"""
 
-    endpoint = 'endpoint'
-    job_type = 'job_type'
-    http_status_code = 'http_status_code'
-    status = 'status'
+    endpoint = "endpoint"
+    job_type = "job_type"
+    http_status_code = "http_status_code"
+    status = "status"
 
 
-
-Point = namedtuple('Point', ['metric_type', 'metric', 'value', 'tags'])
+Point = namedtuple("Point", ["metric_type", "metric", "value", "tags"])
 
 
 def log(logger, point):
-    '''Log a single data point.'''
+    """Log a single data point."""
     result = {
-        'type': point.metric_type,
-        'metric': point.metric,
-        'value': point.value,
-        'tags': point.tags
+        "type": point.metric_type,
+        "metric": point.metric,
+        "value": point.value,
+        "tags": point.tags,
     }
-    logger.info('METRIC: %s', msgspec.json.encode(result))
+    logger.info("METRIC: %s", msgspec.json.encode(result))
 
 
-class Counter():
-    '''Increments a counter metric.
+class Counter:
+    """Increments a counter metric.
 
     When you use Counter as a context manager, it will automatically emit
     points for a "counter" metric periodically and also when the context
@@ -111,7 +115,7 @@ class Counter():
       }
     }
 
-    '''
+    """
 
     def __init__(self, metric, tags=None, log_interval=DEFAULT_LOG_INTERVAL):
         self.metric = metric
@@ -126,13 +130,13 @@ class Counter():
         return self
 
     def increment(self, amount=1):
-        '''Increments value by the specified amount.'''
+        """Increments value by the specified amount."""
         self.value += amount
         if self._ready_to_log():
             self._pop()
 
     def _pop(self):
-        log(self.logger, Point('counter', self.metric, self.value, self.tags))
+        log(self.logger, Point("counter", self.metric, self.value, self.tags))
         self.value = 0
         self.last_log_time = time.time()
 
@@ -143,8 +147,8 @@ class Counter():
         return time.time() - self.last_log_time > self.log_interval
 
 
-class Timer():  # pylint: disable=too-few-public-methods
-    '''Produces metrics about the duration of operations.
+class Timer:  # pylint: disable=too-few-public-methods
+    """Produces metrics about the duration of operations.
 
     You use a Timer as a context manager wrapping around some operation.
     When the context exits, the Timer emits a metric that indicates how
@@ -169,7 +173,8 @@ class Timer():  # pylint: disable=too-few-public-methods
       }
     },
 
-    '''
+    """
+
     def __init__(self, metric, tags):
         self.metric = metric
         self.tags = tags if tags else {}
@@ -181,7 +186,7 @@ class Timer():  # pylint: disable=too-few-public-methods
         return self
 
     def elapsed(self):
-        '''Return elapsed time'''
+        """Return elapsed time"""
         return time.time() - self.start_time
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -190,17 +195,17 @@ class Timer():  # pylint: disable=too-few-public-methods
                 self.tags[Tag.status] = Status.succeeded
             else:
                 self.tags[Tag.status] = Status.failed
-        log(self.logger, Point('timer', self.metric, self.elapsed(), self.tags))
+        log(self.logger, Point("timer", self.metric, self.elapsed(), self.tags))
 
 
 def record_counter(endpoint=None, log_interval=DEFAULT_LOG_INTERVAL):
-    '''Use for counting records retrieved from the source.
+    """Use for counting records retrieved from the source.
 
     with singer.metrics.record_counter(endpoint="users") as counter:
          for record in my_records:
              # Do something with the record
              counter.increment()
-    '''
+    """
     tags = {}
     if endpoint:
         tags[Tag.endpoint] = endpoint
@@ -208,11 +213,11 @@ def record_counter(endpoint=None, log_interval=DEFAULT_LOG_INTERVAL):
 
 
 def http_request_timer(endpoint):
-    '''Use for timing HTTP requests to an endpoint
+    """Use for timing HTTP requests to an endpoint
 
     with singer.metrics.http_request_timer("users") as timer:
         # Make a request
-    '''
+    """
     tags = {}
     if endpoint:
         tags[Tag.endpoint] = endpoint
@@ -220,11 +225,11 @@ def http_request_timer(endpoint):
 
 
 def job_timer(job_type=None):
-    '''Use for timing asynchronous jobs
+    """Use for timing asynchronous jobs
 
     with singer.metrics.job_timer(job_type="users") as timer:
          # Make a request
-    '''
+    """
     tags = {}
     if job_type:
         tags[Tag.job_type] = job_type
@@ -232,17 +237,18 @@ def job_timer(job_type=None):
 
 
 def parse(line):
-    '''Parse a Point from a log line and return it, or None if no data point.'''
-    match = re.match(r'^INFO METRIC: (.*)$', line)
+    """Parse a Point from a log line and return it, or None if no data point."""
+    match = re.match(r"^INFO METRIC: (.*)$", line)
     if match:
         json_str = match.group(1)
         try:
             raw = msgspec.json.decode(json_str)
             return Point(
-                metric_type=raw.get('type'),
-                metric=raw.get('metric'),
-                value=raw.get('value'),
-                tags=raw.get('tags'))
+                metric_type=raw.get("type"),
+                metric=raw.get("metric"),
+                value=raw.get("value"),
+                tags=raw.get("tags"),
+            )
         except Exception as exc:  # pylint: disable=broad-except
-            get_logger().warning('Error parsing metric: %s', exc)
+            get_logger().warning("Error parsing metric: %s", exc)
     return None

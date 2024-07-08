@@ -1,6 +1,10 @@
-'''Provides an object model for a Singer Catalog.'''
-import msgspec
+"""Provides an object model for a Singer Catalog."""
+
+from __future__ import annotations
+
 import sys
+
+import msgspec
 
 from . import metadata as metadata_module
 from .bookmarks import get_currently_syncing
@@ -13,19 +17,31 @@ LOGGER = get_logger()
 def write_catalog(catalog):
     # If the catalog has no streams, log a warning
     if not catalog.streams:
-        LOGGER.warning('Catalog being written with no streams.')
+        LOGGER.warning("Catalog being written with no streams.")
 
     catalog_json = msgspec.json.format(msgspec.json.encode(catalog.to_dict()))
     sys.stdout.buffer.write(catalog_json)
     sys.stdout.buffer.flush()
 
-# pylint: disable=too-many-instance-attributes
-class CatalogEntry():
 
-    def __init__(self, tap_stream_id=None, stream=None,
-                 key_properties=None, schema=None, replication_key=None,
-                 is_view=None, database=None, table=None, row_count=None,
-                 stream_alias=None, metadata=None, replication_method=None):
+# pylint: disable=too-many-instance-attributes
+class CatalogEntry:
+
+    def __init__(
+        self,
+        tap_stream_id=None,
+        stream=None,
+        key_properties=None,
+        schema=None,
+        replication_key=None,
+        is_view=None,
+        database=None,
+        table=None,
+        row_count=None,
+        stream_alias=None,
+        metadata=None,
+        replication_method=None,
+    ):
 
         self.tap_stream_id = tap_stream_id
         self.stream = stream
@@ -49,39 +65,41 @@ class CatalogEntry():
     def is_selected(self):
         mdata = metadata_module.to_map(self.metadata)
         # pylint: disable=no-member
-        return self.schema.selected or metadata_module.get(mdata, (), 'selected')
+        return self.schema.selected or metadata_module.get(
+            mdata, (), "selected"
+        )
 
     def to_dict(self):
         result = {}
         if self.tap_stream_id:
-            result['tap_stream_id'] = self.tap_stream_id
+            result["tap_stream_id"] = self.tap_stream_id
         if self.database:
-            result['database_name'] = self.database
+            result["database_name"] = self.database
         if self.table:
-            result['table_name'] = self.table
+            result["table_name"] = self.table
         if self.replication_key is not None:
-            result['replication_key'] = self.replication_key
+            result["replication_key"] = self.replication_key
         if self.replication_method is not None:
-            result['replication_method'] = self.replication_method
+            result["replication_method"] = self.replication_method
         if self.key_properties is not None:
-            result['key_properties'] = self.key_properties
+            result["key_properties"] = self.key_properties
         if self.schema is not None:
             schema = self.schema.to_dict()  # pylint: disable=no-member
-            result['schema'] = schema
+            result["schema"] = schema
         if self.is_view is not None:
-            result['is_view'] = self.is_view
+            result["is_view"] = self.is_view
         if self.stream is not None:
-            result['stream'] = self.stream
+            result["stream"] = self.stream
         if self.row_count is not None:
-            result['row_count'] = self.row_count
+            result["row_count"] = self.row_count
         if self.stream_alias is not None:
-            result['stream_alias'] = self.stream_alias
+            result["stream_alias"] = self.stream_alias
         if self.metadata is not None:
-            result['metadata'] = self.metadata
+            result["metadata"] = self.metadata
         return result
 
 
-class Catalog():
+class Catalog:
 
     def __init__(self, streams):
         self.streams = streams
@@ -94,7 +112,9 @@ class Catalog():
 
     @classmethod
     def load(cls, filename):
-        with open(filename, encoding='utf-8') as fp:  # pylint: disable=invalid-name
+        with open(
+            filename, encoding="utf-8"
+        ) as fp:  # pylint: disable=invalid-name
             return Catalog.from_dict(msgspec.json.decode(fp.read()))
 
     @classmethod
@@ -105,24 +125,24 @@ class Catalog():
         # change, since callers typically access the streams property
         # directly.
         streams = []
-        for stream in data['streams']:
+        for stream in data["streams"]:
             entry = CatalogEntry()
-            entry.tap_stream_id = stream.get('tap_stream_id')
-            entry.stream = stream.get('stream')
-            entry.replication_key = stream.get('replication_key')
-            entry.key_properties = stream.get('key_properties')
-            entry.database = stream.get('database_name')
-            entry.table = stream.get('table_name')
-            entry.schema = Schema.from_dict(stream.get('schema'))
-            entry.is_view = stream.get('is_view')
-            entry.stream_alias = stream.get('stream_alias')
-            entry.metadata = stream.get('metadata')
-            entry.replication_method = stream.get('replication_method')
+            entry.tap_stream_id = stream.get("tap_stream_id")
+            entry.stream = stream.get("stream")
+            entry.replication_key = stream.get("replication_key")
+            entry.key_properties = stream.get("key_properties")
+            entry.database = stream.get("database_name")
+            entry.table = stream.get("table_name")
+            entry.schema = Schema.from_dict(stream.get("schema"))
+            entry.is_view = stream.get("is_view")
+            entry.stream_alias = stream.get("stream_alias")
+            entry.metadata = stream.get("metadata")
+            entry.replication_method = stream.get("replication_method")
             streams.append(entry)
         return Catalog(streams)
 
     def to_dict(self):
-        return {'streams': [stream.to_dict() for stream in self.streams]}
+        return {"streams": [stream.to_dict() for stream in self.streams]}
 
     def dump(self):
         write_catalog(self)
@@ -148,11 +168,10 @@ class Catalog():
         bottom_half = self.streams[:matching_index]
         return top_half + bottom_half
 
-
     def get_selected_streams(self, state):
         for stream in self._shuffle_streams(state):
             if not stream.is_selected():
-                LOGGER.info('Skipping stream: %s', stream.tap_stream_id)
+                LOGGER.info("Skipping stream: %s", stream.tap_stream_id)
                 continue
 
             yield stream

@@ -1,50 +1,44 @@
+from __future__ import annotations
+
 import unittest
 
 from singer.schema import Schema
 
+
 class TestSchema(unittest.TestCase):
 
     # Raw data structures for several schema types
-    string_dict = {
-        'type': 'string',
-        'maxLength': 32
-    }
+    string_dict = {"type": "string", "maxLength": 32}
 
-    integer_dict = {
-        'type': 'integer',
-        'maximum': 1000000
-    }
+    integer_dict = {"type": "integer", "maximum": 1000000}
 
-    array_dict = {
-        'type': 'array',
-        'items': integer_dict
-    }
+    array_dict = {"type": "array", "items": integer_dict}
 
     object_dict = {
-        'type': 'object',
-        'properties': {
-            'a_string': string_dict,
-            'an_array': array_dict
-        },
-        'inclusion': 'whatever',
-        'additionalProperties': True,
+        "type": "object",
+        "properties": {"a_string": string_dict, "an_array": array_dict},
+        "inclusion": "whatever",
+        "additionalProperties": True,
     }
 
     # Schema object forms of the same schemas as above
-    string_obj = Schema(type='string', maxLength=32)
+    string_obj = Schema(type="string", maxLength=32)
 
-    integer_obj = Schema(type='integer', maximum=1000000)
+    integer_obj = Schema(type="integer", maximum=1000000)
 
-    array_obj = Schema(type='array', items=integer_obj)
+    array_obj = Schema(type="array", items=integer_obj)
 
-    object_obj = Schema(type='object',
-                        properties={'a_string': string_obj,
-                                    'an_array': array_obj},
-                        inclusion='whatever',
-                        additionalProperties=True)
+    object_obj = Schema(
+        type="object",
+        properties={"a_string": string_obj, "an_array": array_obj},
+        inclusion="whatever",
+        additionalProperties=True,
+    )
 
     def test_to_string(self):
-        self.assertEqual('{"maxLength":32,"type":"string"}', str(self.string_obj))
+        self.assertEqual(
+            '{"maxLength":32,"type":"string"}', str(self.string_obj)
+        )
 
     def test_string_to_dict(self):
         self.assertEqual(self.string_dict, self.string_obj.to_dict())
@@ -77,8 +71,13 @@ class TestSchema(unittest.TestCase):
         self.assertEqual(self.object_obj, eval(repr(self.object_obj)))
 
     def test_object_from_dict_with_defaults(self):
-        schema = Schema.from_dict(self.object_dict, inclusion='automatic')
-        self.assertEqual('whatever', schema.inclusion,
-                          msg='The schema value should override the default')
-        self.assertEqual('automatic', schema.properties['a_string'].inclusion)
-        self.assertEqual('automatic', schema.properties['an_array'].items.inclusion)
+        schema = Schema.from_dict(self.object_dict, inclusion="automatic")
+        self.assertEqual(
+            "whatever",
+            schema.inclusion,
+            msg="The schema value should override the default",
+        )
+        self.assertEqual("automatic", schema.properties["a_string"].inclusion)
+        self.assertEqual(
+            "automatic", schema.properties["an_array"].items.inclusion
+        )

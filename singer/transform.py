@@ -1,19 +1,24 @@
+from __future__ import annotations
+
 import datetime
 import logging
 import re
-#from jsonschema import RefResolver
+
+# from jsonschema import RefResolver
 from referencing import Registry
 from referencing.jsonschema import DRAFT202012
 
 import singer.metadata
 from singer.logger import get_logger
-from singer.utils import (strftime, strptime_to_utc)
+from singer.utils import strftime, strptime_to_utc
 
 LOGGER = get_logger()
 
-NO_INTEGER_DATETIME_PARSING = 'no-integer-datetime-parsing'
-UNIX_SECONDS_INTEGER_DATETIME_PARSING = 'unix-seconds-integer-datetime-parsing'
-UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING = 'unix-milliseconds-integer-datetime-parsing'
+NO_INTEGER_DATETIME_PARSING = "no-integer-datetime-parsing"
+UNIX_SECONDS_INTEGER_DATETIME_PARSING = "unix-seconds-integer-datetime-parsing"
+UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING = (
+    "unix-milliseconds-integer-datetime-parsing"
+)
 
 VALID_DATETIME_FORMATS = [
     NO_INTEGER_DATETIME_PARSING,
@@ -26,22 +31,28 @@ def string_to_datetime(value):
     try:
         return strftime(strptime_to_utc(value))
     except Exception as ex:
-        LOGGER.warning('%s, (%s)', ex, value)
+        LOGGER.warning("%s, (%s)", ex, value)
         return None
 
 
 def unix_milliseconds_to_datetime(value):
-    return strftime(datetime.datetime.fromtimestamp(float(value) / 1000.0, datetime.timezone.utc))
+    return strftime(
+        datetime.datetime.fromtimestamp(
+            float(value) / 1000.0, datetime.timezone.utc
+        )
+    )
 
 
 def unix_seconds_to_datetime(value):
-    return strftime(datetime.datetime.fromtimestamp(int(value), datetime.timezone.utc))
+    return strftime(
+        datetime.datetime.fromtimestamp(int(value), datetime.timezone.utc)
+    )
 
 
 class SchemaMismatch(Exception):
     def __init__(self, errors):
         if not errors:
-            msg = 'An error occured during transform that was not a schema mismatch'
+            msg = "An error occured during transform that was not a schema mismatch"
 
         else:
             estrs = [e.tostr() for e in errors]
@@ -49,13 +60,15 @@ class SchemaMismatch(Exception):
 
         super().__init__(msg)
 
+
 class SchemaKey:
-    ref = '$ref'
-    items = 'items'
-    properties = 'properties'
-    pattern_properties = 'patternProperties'
-    any_of = 'anyOf'
-    all_of = 'allOf'
+    ref = "$ref"
+    items = "items"
+    properties = "properties"
+    pattern_properties = "patternProperties"
+    any_of = "anyOf"
+    all_of = "allOf"
+
 
 class Error:
     def __init__(self, path, data, schema=None, logging_level=logging.INFO):
@@ -65,24 +78,26 @@ class Error:
         self.logging_level = logging_level
 
     def tostr(self):
-        path = '.'.join(map(str, self.path))
+        path = ".".join(map(str, self.path))
         if self.schema:
             if self.logging_level >= logging.INFO:
-                msg = f'data does not match {self.schema}'
+                msg = f"data does not match {self.schema}"
             else:
-                msg = f'does not match {self.schema}'
+                msg = f"does not match {self.schema}"
         else:
-            msg = 'not in schema'
+            msg = "not in schema"
 
         if self.logging_level >= logging.INFO:
-            output = f'{path}: {msg}'
+            output = f"{path}: {msg}"
         else:
-            output = f'{path}: {self.data} {msg}'
+            output = f"{path}: {self.data} {msg}"
         return output
 
 
 class Transformer:
-    def __init__(self, integer_datetime_fmt=NO_INTEGER_DATETIME_PARSING, pre_hook=None):
+    def __init__(
+        self, integer_datetime_fmt=NO_INTEGER_DATETIME_PARSING, pre_hook=None
+    ):
         self.integer_datetime_fmt = integer_datetime_fmt
         self.pre_hook = pre_hook
         self.removed = set()
@@ -91,20 +106,23 @@ class Transformer:
 
     def log_warning(self):
         if self.filtered:
-            LOGGER.debug('Filtered %s paths during transforms '
-                         'as they were unsupported or not selected:\n\t%s',
-                         len(self.filtered),
-                         '\n\t'.join(sorted(self.filtered)))
+            LOGGER.debug(
+                "Filtered %s paths during transforms "
+                "as they were unsupported or not selected:\n\t%s",
+                len(self.filtered),
+                "\n\t".join(sorted(self.filtered)),
+            )
             # Output list format to parse for reporting
-            LOGGER.debug('Filtered paths list: %s',
-                         sorted(self.filtered))
+            LOGGER.debug("Filtered paths list: %s", sorted(self.filtered))
 
         if self.removed:
-            LOGGER.debug('Removed %s paths during transforms:\n\t%s',
-                         len(self.removed),
-                         '\n\t'.join(sorted(self.removed)))
+            LOGGER.debug(
+                "Removed %s paths during transforms:\n\t%s",
+                len(self.removed),
+                "\n\t".join(sorted(self.removed)),
+            )
             # Output list format to parse for reporting
-            LOGGER.debug('Removed paths list: %s', sorted(self.removed))
+            LOGGER.debug("Removed paths list: %s", sorted(self.removed))
 
     def __enter__(self):
         return self
@@ -115,9 +133,13 @@ class Transformer:
     def filter_data_by_metadata(self, data, metadata):
         if isinstance(data, dict) and metadata:
             for field_name in list(data.keys()):
-                selected = singer.metadata.get(metadata, ('properties', field_name), 'selected')
-                inclusion = singer.metadata.get(metadata, ('properties', field_name), 'inclusion')
-                if inclusion == 'automatic':
+                selected = singer.metadata.get(
+                    metadata, ("properties", field_name), "selected"
+                )
+                inclusion = singer.metadata.get(
+                    metadata, ("properties", field_name), "inclusion"
+                )
+                if inclusion == "automatic":
                     continue
 
                 if selected is False:
@@ -126,7 +148,7 @@ class Transformer:
                     # didn't select it.
                     self.filtered.add(field_name)
 
-                if inclusion == 'unsupported':
+                if inclusion == "unsupported":
                     data.pop(field_name, None)
                     # Track that the field was filtered because the tap
                     # declared it as unsupported.
@@ -144,39 +166,45 @@ class Transformer:
         return transformed_data
 
     def transform_recur(self, data, schema, path):
-        if 'anyOf' in schema:
+        if "anyOf" in schema:
             return self._transform_anyof(data, schema, path)
 
-        if 'type' not in schema:
+        if "type" not in schema:
             # indicates no typing information so don't bother transforming it
             return True, data
 
-        types = schema['type']
+        types = schema["type"]
         if not isinstance(types, list):
             types = [types]
 
-        if 'null' in types:
-            types.remove('null')
-            types.append('null')
+        if "null" in types:
+            types.remove("null")
+            types.append("null")
 
         for typ in types:
             success, transformed_data = self._transform(data, typ, schema, path)
             if success:
                 return success, transformed_data
-        else: # pylint: disable=useless-else-on-loop
+        else:  # pylint: disable=useless-else-on-loop
             # exhaused all types and didn't return, so we failed :-(
-            self.errors.append(Error(path, data, schema, logging_level=LOGGER.level))
+            self.errors.append(
+                Error(path, data, schema, logging_level=LOGGER.level)
+            )
             return False, None
 
     def _transform_anyof(self, data, schema, path):
-        subschemas = schema['anyOf']
+        subschemas = schema["anyOf"]
         for subschema in subschemas:
-            success, transformed_data = self.transform_recur(data, subschema, path)
+            success, transformed_data = self.transform_recur(
+                data, subschema, path
+            )
             if success:
                 return success, transformed_data
-        else: # pylint: disable=useless-else-on-loop
+        else:  # pylint: disable=useless-else-on-loop
             # exhaused all schemas and didn't return, so we failed :-(
-            self.errors.append(Error(path, data, schema, logging_level=LOGGER.level))
+            self.errors.append(
+                Error(path, data, schema, logging_level=LOGGER.level)
+            )
             return False, None
 
     def _transform_object(self, data, schema, path, pattern_properties):
@@ -194,12 +222,16 @@ class Transformer:
         successes = []
         for key, value in data.items():
             # patternProperties are a map of {"pattern": { schema...}}
-            pattern_schemas = [schema for pattern, schema
-                               in (pattern_properties or {}).items()
-                               if re.match(pattern, key)]
+            pattern_schemas = [
+                schema
+                for pattern, schema in (pattern_properties or {}).items()
+                if re.match(pattern, key)
+            ]
             if key in schema or pattern_schemas:
-                sub_schema = schema.get(key, {'anyOf': pattern_schemas})
-                success, subdata = self.transform_recur(value, sub_schema, path + [key])
+                sub_schema = schema.get(key, {"anyOf": pattern_schemas})
+                success, subdata = self.transform_recur(
+                    value, sub_schema, path + [key]
+                )
                 successes.append(success)
                 result[key] = subdata
             else:
@@ -208,7 +240,7 @@ class Transformer:
                 # with discovery but rather than failing the run because
                 # new data was added we'd rather continue the sync and
                 # allow customers to indicate that they want the new data.
-                self.removed.add('.'.join(map(str, path + [key])))
+                self.removed.add(".".join(map(str, path + [key])))
 
         return all(successes), result
 
@@ -228,17 +260,20 @@ class Transformer:
         return all(successes), result
 
     def _transform_datetime(self, value):
-        if value is None or value == '':
-            return None # Short circuit in the case of null or empty string
+        if value is None or value == "":
+            return None  # Short circuit in the case of null or empty string
 
         if self.integer_datetime_fmt not in VALID_DATETIME_FORMATS:
-            raise Exception('Invalid integer datetime parsing option')
+            raise Exception("Invalid integer datetime parsing option")
 
         if self.integer_datetime_fmt == NO_INTEGER_DATETIME_PARSING:
             return string_to_datetime(value)
 
         try:
-            if self.integer_datetime_fmt == UNIX_SECONDS_INTEGER_DATETIME_PARSING:
+            if (
+                self.integer_datetime_fmt
+                == UNIX_SECONDS_INTEGER_DATETIME_PARSING
+            ):
                 return unix_seconds_to_datetime(value)
 
             return unix_milliseconds_to_datetime(value)
@@ -249,30 +284,32 @@ class Transformer:
         if self.pre_hook:
             data = self.pre_hook(data, typ, schema)
 
-        if typ == 'null':
-            if data is None or data == '':
+        if typ == "null":
+            if data is None or data == "":
                 return True, None
 
             return False, None
 
-        if schema.get('format') == 'date-time':
+        if schema.get("format") == "date-time":
             data = self._transform_datetime(data)
             if data is None:
                 return False, None
 
             return True, data
 
-        if typ == 'object':
+        if typ == "object":
             # Objects do not necessarily specify properties
-            return self._transform_object(data,
-                                          schema.get('properties', {}),
-                                          path,
-                                          schema.get(SchemaKey.pattern_properties))
+            return self._transform_object(
+                data,
+                schema.get("properties", {}),
+                path,
+                schema.get(SchemaKey.pattern_properties),
+            )
 
-        if typ == 'array':
-            return self._transform_array(data, schema['items'], path)
+        if typ == "array":
+            return self._transform_array(data, schema["items"], path)
 
-        if typ == 'string':
+        if typ == "string":
             if data is not None:
                 try:
                     return True, str(data)
@@ -281,26 +318,26 @@ class Transformer:
             else:
                 return False, None
 
-        if typ == 'integer':
+        if typ == "integer":
             if isinstance(data, str):
-                data = data.replace(',', '')
+                data = data.replace(",", "")
 
             try:
                 return True, int(data)
             except Exception:
                 return False, None
 
-        if typ == 'number':
+        if typ == "number":
             if isinstance(data, str):
-                data = data.replace(',', '')
+                data = data.replace(",", "")
 
             try:
                 return True, float(data)
             except Exception:
                 return False, None
 
-        if typ == 'boolean':
-            if isinstance(data, str) and data.lower() == 'false':
+        if typ == "boolean":
+            if isinstance(data, str) and data.lower() == "false":
                 return True, False
 
             try:
@@ -311,8 +348,13 @@ class Transformer:
         return False, None
 
 
-def transform(data, schema, integer_datetime_fmt=NO_INTEGER_DATETIME_PARSING,
-              pre_hook=None, metadata=None):
+def transform(
+    data,
+    schema,
+    integer_datetime_fmt=NO_INTEGER_DATETIME_PARSING,
+    pre_hook=None,
+    metadata=None,
+):
     """
     Applies schema (and integer_datetime_fmt, if supplied) to data, transforming
     each field in data to the type specified in schema. If no type matches a
@@ -333,12 +375,16 @@ def transform(data, schema, integer_datetime_fmt=NO_INTEGER_DATETIME_PARSING,
     transformer = Transformer(integer_datetime_fmt, pre_hook)
     return transformer.transform(data, schema, metadata=metadata)
 
-def _transform_datetime(value, integer_datetime_fmt=NO_INTEGER_DATETIME_PARSING):
+
+def _transform_datetime(
+    value, integer_datetime_fmt=NO_INTEGER_DATETIME_PARSING
+):
     transformer = Transformer(integer_datetime_fmt)
     return transformer._transform_datetime(value)
 
+
 def resolve_schema_references(schema, refs=None):
-    '''Resolves and replaces json-schema $refs with the appropriate dict.
+    """Resolves and replaces json-schema $refs with the appropriate dict.
 
     Recursively walks the given schema dict, converting every instance
     of $ref in a 'properties' structure with a resolved dict.
@@ -353,11 +399,11 @@ def resolve_schema_references(schema, refs=None):
 
     Returns:
         schema
-    '''
-#    refs = refs or {}
-#    return _resolve_schema_references(schema, RefResolver('', schema, store=refs))
+    """
+    #    refs = refs or {}
+    #    return _resolve_schema_references(schema, RefResolver('', schema, store=refs))
     refs = refs or {}
-    registry: Registry = Registry()
+    registry: Registry = Registry()  # type: ignore[annotation-unchecked]
     schema_resource = DRAFT202012.create_resource(schema)
     registry = registry.with_resource("", schema_resource)
     registry = registry.with_resources(
@@ -366,6 +412,7 @@ def resolve_schema_references(schema, refs=None):
 
     resolver = registry.resolver()
     return _resolve_schema_references(schema, resolver)
+
 
 def _resolve_schema_references(schema, resolver):
     if SchemaKey.ref in schema:
@@ -376,21 +423,31 @@ def _resolve_schema_references(schema, resolver):
 
     if SchemaKey.properties in schema:
         for k, val in schema[SchemaKey.properties].items():
-            schema[SchemaKey.properties][k] = _resolve_schema_references(val, resolver)
+            schema[SchemaKey.properties][k] = _resolve_schema_references(
+                val, resolver
+            )
 
     if SchemaKey.pattern_properties in schema:
         for k, val in schema[SchemaKey.pattern_properties].items():
-            schema[SchemaKey.pattern_properties][k] = _resolve_schema_references(val, resolver)
+            schema[SchemaKey.pattern_properties][k] = (
+                _resolve_schema_references(val, resolver)
+            )
 
     if SchemaKey.items in schema:
-        schema[SchemaKey.items] = _resolve_schema_references(schema[SchemaKey.items], resolver)
+        schema[SchemaKey.items] = _resolve_schema_references(
+            schema[SchemaKey.items], resolver
+        )
 
     if SchemaKey.any_of in schema:
         for i, element in enumerate(schema[SchemaKey.any_of]):
-            schema[SchemaKey.any_of][i] = _resolve_schema_references(element, resolver)
+            schema[SchemaKey.any_of][i] = _resolve_schema_references(
+                element, resolver
+            )
 
     if SchemaKey.all_of in schema:
         for i, element in enumerate(schema[SchemaKey.all_of]):
-            schema[SchemaKey.all_of][i] = _resolve_schema_references(element, resolver)
+            schema[SchemaKey.all_of][i] = _resolve_schema_references(
+                element, resolver
+            )
 
     return schema

@@ -29,11 +29,11 @@ jobs:
 
       - name: Install and upgrade dependencies
         run: |
-          python -m pip install -U pip setuptools wheel
-          python3 -m pip install -U .[dev]
+          python -m pip install poetry
+          python3 -m poetry install
 
-      - name: Analysing the code with pylint
-        run: pylint singer
+      - name: Analysing the code with tox tests
+        run: poetry run tox -e py
 
       - name: Runs tests with coverage
         run: coverage run --parallel -m pytest

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipelinewise-singer-python"
-version = "3.0.0"
+version = "4.0.0"
 description = "Singer.io utility library - PipelineWise compatible"
 authors = []
 license = "Apache 2.0"

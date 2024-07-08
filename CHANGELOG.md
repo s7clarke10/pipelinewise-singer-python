@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.0.0 (2024-07-08)
+ * Moving from setup.py to pyproject.toml and poetry for installation
+ * Introducing tox for platform independent testing of pep8 compliance.
+ * Introducing black for formatting
+ * Introducing isort for compliant and order includes
+ * Introducing flake8 for linting alongside pylint
+ * Introducing mypy for type checking
+ * Updating github actions to run tox tests rather than directly running pytests.
+ * Code formatting updates and changes to pass / met the standards above.
+
 ## 3.0.0 (2023-08-23)
  * Using msgspec instead of orjson or other serializers for speed benefit
  * Support for Python 3.12

@@ -1,7 +1,12 @@
 # Changelog
 
 ## 4.0.1 (2024-08-08)
- * Correcting Supported Python version constraint in pyproject.toml
+ * Correcting Supported Python version constraint in pyproject.toml >=3.8,<3.13
+ * Bump pytest from 7.4.4 to 8.3.2
+ * Bump pytz from 2018.9 to 2024.1
+ * Bump jsonschema from 4.22.0 to 4.23.0
+ * Bump tox from 4.15.1 to 4.17.1 #35
+ * Bump coverage from 7.5.4 to 7.6.1 #33
 
 ## 4.0.0 (2024-07-08)
  * Moving from setup.py to pyproject.toml and poetry for installation

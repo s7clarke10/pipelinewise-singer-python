@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.0.1 (2024-08-08)
+ * Correcting Supported Python version constraint in pyproject.toml
+
 ## 4.0.0 (2024-07-08)
  * Moving from setup.py to pyproject.toml and poetry for installation
  * Introducing tox for platform independent testing of pep8 compliance.

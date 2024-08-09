@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.0 (2024-08-09)
+ * Renaming repo to realit-singer-python to allow required publishing to PyPI
+ * NOTE: Will need to urgently update tap-oracle, tap-mssql, tap-s3-csv which are dependent on this.
+
 ## 4.0.1 (2024-08-08)
  * Correcting Supported Python version constraint in pyproject.toml >=3.8,<3.13
  * Bump pytest from 7.4.4 to 8.3.2

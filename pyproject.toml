@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "pipelinewise-singer-python"
-version = "4.0.1"
-description = "Singer.io utility library - PipelineWise compatible"
+name = "realit-singer-python"
+version = "5.0.0"
+description = "Singer.io utility library - PipelineWise and Meltano compatible"
 authors = []
 license = "Apache 2.0"
 readme = "README.md"
-homepage = "https://github.com/s7clarke10/pipelinewise-singer-python"
-repository = "https://github.com/s7clarke10/pipelinewise-singer-python"
+homepage = "https://github.com/s7clarke10/realit-singer-python"
+repository = "https://github.com/s7clarke10/realit-singer-python"
 keywords = ["singer", "meltano", "pipelinewise", "framework"]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -83,4 +83,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-pipelinewise-singer-python = "pipelinewise_singer_python.__init__:main"
+realit-singer-python = "realit_singer_python.__init__:main"

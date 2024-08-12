@@ -1,12 +1,12 @@
-pipelinewise-singer-python
+realit-singer-python
 ===================
-[![PyPI version](https://badge.fury.io/py/pipelinewise-singer-python.svg)](https://badge.fury.io/py/pipelinewise-singer-python)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pipelinewise-singer-python.svg)](https://pypi.org/project/pipelinewise-singer-python/)
+[![PyPI version](https://badge.fury.io/py/realit-singer-python.svg)](https://badge.fury.io/py/realit-singer-python)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/realit-singer-python.svg)](https://pypi.org/project/realit-singer-python/)
 [![License: MIT](https://img.shields.io/badge/License-Apache2-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Writes the Singer format from Python.
 
-This is a fork of [Singer's singer-python](https://github.com/singer-io/singer-python) made for [PipelineWise](https://transferwise.github.io/pipelinewise).
+This is a fork of [Singer's singer-python](https://github.com/singer-io/singer-python) made for [PipelineWise](https://transferwise.github.io/pipelinewise) and [Meltano](https://meltano.com/)
 
 Usage
 ---
@@ -44,8 +44,8 @@ singer.write_state({'my_table': 'd'})
 
 ### Logging configuration
 
-**pipelinewise-singer-python** by default doesn't use any predefined logging configuration, it's up to the calling 
-library to define it. However, if the environment variable `LOGGING_CONF_FILE` is found and set then the **pipelinewise-singer-python** 
+**realit-singer-python** by default doesn't use any predefined logging configuration, it's up to the calling 
+library to define it. However, if the environment variable `LOGGING_CONF_FILE` is found and set then the **realit-singer-python** 
 would use the path provided in the env variable as the logging configuration for the logger. 
 
 ### Singer Decimal

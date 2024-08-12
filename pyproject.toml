@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "realit-singer-python"
-version = "5.0.0"
+version = "5.0.1"
 description = "Singer.io utility library - PipelineWise and Meltano compatible"
 authors = []
 license = "Apache 2.0"

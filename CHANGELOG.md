@@ -1,5 +1,8 @@
 # Changelog
 
+## 5.0.1 (2024-08-12)
+ * Updating the README.md to have the badges point to the correctly published version on PyPI.
+
 ## 5.0.0 (2024-08-09)
  * Renaming repo to realit-singer-python to allow required publishing to PyPI
  * NOTE: Will need to urgently update tap-oracle, tap-mssql, tap-s3-csv which are dependent on this.

@@ -46,7 +46,7 @@ ipdb = "^0.13.13"
 unify = "^0.5"
 tox = "^4.17.1"
 flake8 = { version = "^7.1.0", python = ">=3.8.1" }
-black = "^24.4.2"
+black = "^24.8.0"
 pydocstyle = "^6.3.0"
 mypy = "^1.10.1"
 isort = "^5.13.2"

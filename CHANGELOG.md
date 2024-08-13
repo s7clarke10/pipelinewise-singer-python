@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.0.2 (2024-08-13)
+ * Bump black from 24.4.2 to 24.8.0
+ * Bump pylint from 3.2.5 to 3.2.6
+ * Bump mypy from 1.10.1 to 1.11.1
+ * Bump flake8 from 7.1.0 to 7.1.1 
+ * Bump actions/setup-python from 3 to 5
+ * Bump pypa/gh-action-pypi-publish from 1.4.2 to 1.9.0
+
 ## 5.0.1 (2024-08-12)
  * Updating the README.md to have the badges point to the correctly published version on PyPI.
 

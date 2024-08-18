@@ -1,5 +1,8 @@
 # Changelog
 
+## 5.0.3 (2024-08-19)
+ * Moving to a trusted push to pypi
+
 ## 5.0.2 (2024-08-13)
  * Bump black from 24.4.2 to 24.8.0
  * Bump pylint from 3.2.5 to 3.2.6

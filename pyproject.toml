@@ -44,7 +44,7 @@ coverage = ">= 6.3, < 8.0"
 ipython = "^8.12.1"
 ipdb = "^0.13.13"
 unify = "^0.5"
-tox = "^4.17.1"
+tox = "^4.18.1"
 flake8 = { version = "^7.1.1", python = ">=3.8.1" }
 black = "^24.8.0"
 pydocstyle = "^6.3.0"
